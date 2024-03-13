@@ -1,0 +1,45 @@
+{
+  "name": "@dataswapjs/shed",
+  "version": "0.1.0",
+  "description": "dataswap toolset",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "rm -rf ./dist;npx tsc",
+    "build:test": "rm -rf ./dist-test;tsc -p tsconfig.test.json;",
+    "test": "npm run build:test;mocha --exit",
+    "postinstall": "patch-package",
+    "readme": "npx readme-md-generator -p ./templates/readme.md",
+    "format": "npx prettier --write \"**/*.{ts,js}\"",
+    "commit": "npm run format; git-cz",
+    "release": "npm run build; git branch --show-current | grep -q '^main$' && release-it",
+    "contrib:init": "all-contributors init",
+    "contrib:add": "all-contributors add",
+    "contrib:check": "all-contributors check",
+    "contrib:gen": "all-contributors generate"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/dataswap/shed.git"
+  },
+  "keywords": [
+    "dataswap",
+    "toolset",
+    "ts",
+    "js"
+  ],
+  "author": "waynewyang",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/dataswap/shed/issues"
+  },
+  "homepage": "https://github.com/dataswap/shed#readme",
+  "devDependencies": {
+    "all-contributors-cli": "^6.26.1",
+    "git-cz": "^4.9.0",
+    "patch-package": "^8.0.0",
+    "prettier": "3.2.5",
+    "readme-md-generator": "^1.0.0",
+    "release-it": "^17.1.1"
+  }
+}

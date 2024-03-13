@@ -1,0 +1,24 @@
+{
+  "compilerOptions": {
+    "outDir": "./dist-test",
+    "declaration": true,
+    "target": "ES2015",
+    "strict": true,
+    "forceConsistentCasingInFileNames": true,
+    "esModuleInterop": true,
+    "module": "commonjs",
+    "moduleResolution": "node",
+    "resolveJsonModule": true,
+    "isolatedModules": false,
+    "experimentalDecorators": true,
+    "jsx": "react",
+    "skipLibCheck": true,
+    "incremental": false,
+  },
+  "include": [
+    "test/**/*"
+  ],
+  "exclude": [
+    "node_modules"
+  ],
+}
