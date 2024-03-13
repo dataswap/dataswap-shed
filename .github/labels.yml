@@ -1,0 +1,91 @@
+###
+### Special magic GitHub labels
+### https://help.github.com/en/github/building-a-strong-community/encouraging-helpful-contributions-to-your-project-with-labels
+#
+- name: "good first issue"
+  color: 7057ff
+  description: "Good for newcomers"
+- name: "help wanted"
+  color: 008672
+  description: "Extra attention is needed"
+
+### Kinds
+
+- name: "kind/bug"
+  color: "d73a4a"
+  description: "Something isn't working"
+- name: "kind/enhance"
+  color: "C2E0C6"
+  description: "enhance function"
+- name: "kind/new feature"
+  color: "A2EEEF"
+  description: "New feature (or  feature request)"
+- name: "kind/Interacting with external contracts"
+  color: "e99695"
+  description: ""
+- name: "kind/invalid"
+  color: "e4e669"
+  description: "This doesn't seem right"
+- name: "kind/question"
+  color: "d876e3"
+  description: "Further information is requested"
+- name: "kind/security"
+  color: "B60205"
+  description: ""
+- name: "kind/wontfix"
+  color: "ffffff"
+  description: "This will not be worked on"
+- name: "documentation"
+  color: "0075ca"
+  description: "Improvements or additions to documentation"
+- name: "dependencies"
+  color: "0366d6"
+  description: "Pull requests that update a dependency file"
+- name: "duplicate"
+  color: "cfd3d7"
+  description: "This issue or pull request already exists"
+
+### Priorities
+
+- name: "Priority: Critical"
+  color: "B60205"
+  description: ""
+- name: "Priority: High"
+  color: "FF5733"
+  description: ""
+- name: "Priority: Low"
+  color: "36A64F"
+  description: ""
+- name: "Priority: Medium"
+  color: "FFC300"
+  description: ""
+- name: "Priority: Urgent"
+  color: "FF0000"
+  description: ""
+
+### Statuses
+#
+- name: status/done
+  color: edb3a6
+  description: "Status: Done"
+- name: status/deferred
+  color: E0A699
+  description: "Status: Deferred"
+- name: status/in-progress
+  color: D49A8D
+  description: "Status: In Progress"
+- name: status/blocked
+  color: C78D80
+  description: "Status: Blocked"
+- name: status/inactive
+  color: BA8073
+  description: "Status: Inactive"
+- name: status/waiting
+  color: AD7366
+  description: "Status: Waiting"
+- name: status/rotten
+  color: 7A4033
+  description: "Status: Rotten"
+- name: status/discarded
+  color: 6D3326
+  description: "Status: Discarded / Won't fix"
