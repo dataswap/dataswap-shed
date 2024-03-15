@@ -19,7 +19,10 @@
  ********************************************************************************/
 
 import yargs from "yargs"
-import { submitDatasetProof } from "./dataset/proof/repo"
+import {
+    submitDatasetProof,
+    submitDatasetChallengeProofs,
+} from "./dataset/proof/repo"
 
 /**
  * Parses the command line arguments and executes the corresponding command.
@@ -63,6 +66,30 @@ const argv = yargs
             type: "number",
         },
     })
+    .command(
+        "submitDatasetChallengeProofs",
+        "Submit dataset challenge proofs",
+        {
+            network: {
+                description: "network type",
+                alias: "n",
+                type: "string",
+                default: "calibration",
+            },
+            datasetId: {
+                description: "Dataset Id",
+                alias: "i",
+                demandOption: true,
+                type: "number",
+            },
+            path: {
+                description: "Dataset challenge proof file path",
+                alias: "p",
+                demandOption: true,
+                type: "string",
+            },
+        }
+    )
     .help()
     .alias("help", "h")
     .parseSync()
@@ -80,6 +107,13 @@ export async function run() {
                 String(argv.mappingFilesAccessMethod),
                 String(argv.path),
                 Number(argv.chunk)
+            )
+            break
+        case "submitDatasetChallengeProofs":
+            await submitDatasetChallengeProofs(
+                String(argv.network),
+                Number(argv.datasetId),
+                String(argv.path)
             )
             break
         default:

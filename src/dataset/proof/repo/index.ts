@@ -21,7 +21,9 @@
 import {
     DataType,
     datasetProofEvm_Calibration,
+    datasetChallengeEvm_Calibration,
     datasetProofEvm_Main,
+    datasetChallengeEvm_Main,
 } from "@dataswapjs/dataswapjs"
 import fs from "fs"
 
@@ -31,6 +33,72 @@ import {
 } from "../../../shared/constant"
 import { handleEvmError, FileLock } from "../../../shared/utils/utils"
 import { DatasetProof, DatasetProofSubmitInfo } from "../types"
+
+/**
+ * Submits the dataset challenge proof to the blockchain network.
+ * @param network The network to submit the dataset proof to.
+ * @param datasetId The ID of the dataset.
+ * @param path The file path of the dataset proof.
+ * @returns A promise that resolves to true if the submission is successful, otherwise false.
+ */
+export async function submitDatasetChallengeProofs(
+    network: string,
+    datasetId: number,
+    path: string
+): Promise<boolean> {
+    const lock = new FileLock(String(datasetId) + path)
+    if (!lock.acquireLock()) {
+        console.log(
+            "Failed to acquire lock, another process may be using the file"
+        )
+    }
+
+    try {
+        console.log(
+            "Start submitDatasetChallengeProofs:",
+            "network:",
+            network,
+            "datasetId:",
+            datasetId,
+            "dataType:",
+            "path:",
+            path
+        )
+
+        const datasetChallengeProof = JSON.parse(
+            fs.readFileSync(path).toString()
+        )
+        const datasetChallengeEvm =
+            network === "calibration"
+                ? datasetChallengeEvm_Calibration
+                : datasetChallengeEvm_Main
+
+        const criteria = await checkSubmissionChallengeProofsCriteria(
+            datasetChallengeEvm,
+            datasetId,
+            process.env.ADDRESS as string,
+            datasetChallengeProof.RandomSeed
+        )
+        if (!criteria) {
+            return false
+        }
+
+        datasetChallengeEvm.getWallet().add(process.env.PRIVATE_KEY as string)
+        await handleEvmError(
+            datasetChallengeEvm.submitDatasetChallengeProofs(
+                datasetChallengeProof.DatasetId,
+                datasetChallengeProof.RandomSeed,
+                datasetChallengeProof.Leaves,
+                datasetChallengeProof.Siblings,
+                datasetChallengeProof.Paths
+            )
+        )
+
+        return true
+    } finally {
+        lock.releaseLock()
+    }
+}
 
 /**
  * Submits the dataset proof to the blockchain network.
@@ -105,6 +173,47 @@ export async function submitDatasetProof(
     } finally {
         lock.releaseLock()
     }
+}
+
+/**
+ * Checks if the criteria for submitting dataset challenge proofs are met.
+ * @param datasetChallengeEvm - The Ethereum Virtual Machine instance for dataset challenge proofs.
+ * @param datasetId - The ID of the dataset.
+ * @param auditor - The auditor's address who submits the challenge proof.
+ * @param randomSeed - The random seed used in generating the challenge.
+ * @returns A Promise that resolves to a boolean indicating whether the criteria are met (true) or not (false).
+ */
+async function checkSubmissionChallengeProofsCriteria(
+    datasetChallengeEvm: any,
+    datasetId: number,
+    auditor: string,
+    randomSeed: bigint
+): Promise<boolean> {
+    if (
+        await handleEvmError(
+            datasetChallengeEvm.isDatasetChallengeProofDuplicate(
+                datasetId,
+                auditor,
+                randomSeed
+            )
+        )
+    ) {
+        console.log("Dataset challenge proof had submited, do nothing~")
+        return false
+    }
+
+    if (
+        !(await handleEvmError(
+            datasetChallengeEvm.isWinner(datasetId, auditor)
+        ))
+    ) {
+        console.log(
+            "Can't submit the dataset challenge proof(not the winner), do nothing~"
+        )
+        return false
+    }
+
+    return true
 }
 
 /**
