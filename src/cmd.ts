@@ -23,6 +23,7 @@ import {
     submitDatasetProof,
     submitDatasetChallengeProofs,
 } from "./dataset/proof/repo"
+import { getEscrowRequirement } from "./finance/repo"
 
 import { Context } from "./shared/context"
 
@@ -80,6 +81,26 @@ const argv = yargs
             },
         }
     )
+    .command("getEscrowRequirement", "Get escrow requirement", {
+        datasetId: {
+            description: "Dataset Id",
+            alias: "i",
+            type: "number",
+        },
+        size: {
+            description: "Data size",
+            alias: "s",
+            type: "number",
+        },
+        type: {
+            description:
+                "escrow type:(DatacapCollateralRequirment=0; DatacapChunkLandRequirment=1; ChallengeCommissionRequirment=2; ChallengeAuditCollateralRequirment=3; ProofAuditCollateralRequirment=4; DisputeAuditCollateralRequirment=5)",
+            alias: "t",
+            demandOption: true,
+            type: "number",
+        },
+    })
+
     .help()
     .alias("help", "h")
     .parseSync()
@@ -105,6 +126,16 @@ export async function run(context: Context) {
                 datasetId: Number(argv.datasetId),
                 path: String(argv.path),
             })
+            break
+        case "getEscrowRequirement":
+            console.log(
+                await getEscrowRequirement({
+                    context,
+                    datasetId: Number(argv.datasetId),
+                    size: Number(argv.size),
+                    type: Number(argv.type),
+                })
+            )
             break
         default:
             console.log("Unknown command.")
