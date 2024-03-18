@@ -24,17 +24,13 @@ import {
     submitDatasetChallengeProofs,
 } from "./dataset/proof/repo"
 
+import { Context } from "./shared/context"
+
 /**
  * Parses the command line arguments and executes the corresponding command.
  */
 const argv = yargs
     .command("submitDatasetProof", "Submit dataset proof", {
-        network: {
-            description: "network type",
-            alias: "n",
-            type: "string",
-            default: "calibration",
-        },
         datasetId: {
             description: "Dataset Id",
             alias: "i",
@@ -70,12 +66,6 @@ const argv = yargs
         "submitDatasetChallengeProofs",
         "Submit dataset challenge proofs",
         {
-            network: {
-                description: "network type",
-                alias: "n",
-                type: "string",
-                default: "calibration",
-            },
             datasetId: {
                 description: "Dataset Id",
                 alias: "i",
@@ -97,24 +87,24 @@ const argv = yargs
 /**
  * Executes the command based on the parsed command-line arguments.
  */
-export async function run() {
+export async function run(context: Context) {
     switch (argv._[0]) {
         case "submitDatasetProof":
-            await submitDatasetProof(
-                String(argv.network),
-                Number(argv.datasetId),
-                Number(argv.dataType),
-                String(argv.mappingFilesAccessMethod),
-                String(argv.path),
-                Number(argv.chunk)
-            )
+            await submitDatasetProof({
+                context,
+                datasetId: Number(argv.datasetId),
+                dataType: Number(argv.dataType),
+                mappingFilesAccessMethod: String(argv.mappingFilesAccessMethod),
+                path: String(argv.path),
+                chunk: Number(argv.chunk),
+            })
             break
         case "submitDatasetChallengeProofs":
-            await submitDatasetChallengeProofs(
-                String(argv.network),
-                Number(argv.datasetId),
-                String(argv.path)
-            )
+            await submitDatasetChallengeProofs({
+                context,
+                datasetId: Number(argv.datasetId),
+                path: String(argv.path),
+            })
             break
         default:
             console.log("Unknown command.")

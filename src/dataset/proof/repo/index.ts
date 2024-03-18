@@ -18,13 +18,7 @@
  *  limitations under the respective licenses.
  ********************************************************************************/
 
-import {
-    DataType,
-    datasetProofEvm_Calibration,
-    datasetChallengeEvm_Calibration,
-    datasetProofEvm_Main,
-    datasetChallengeEvm_Main,
-} from "@dataswapjs/dataswapjs"
+import { DataType } from "@dataswapjs/dataswapjs"
 import fs from "fs"
 
 import {
@@ -33,6 +27,7 @@ import {
 } from "../../../shared/constant"
 import { handleEvmError, FileLock } from "../../../shared/utils/utils"
 import { DatasetProof, DatasetProofSubmitInfo } from "../types"
+import { Context } from "../../../shared/context"
 
 /**
  * Submits the dataset challenge proof to the blockchain network.
@@ -41,12 +36,12 @@ import { DatasetProof, DatasetProofSubmitInfo } from "../types"
  * @param path The file path of the dataset proof.
  * @returns A promise that resolves to true if the submission is successful, otherwise false.
  */
-export async function submitDatasetChallengeProofs(
-    network: string,
-    datasetId: number,
+export async function submitDatasetChallengeProofs(options: {
+    context: Context
+    datasetId: number
     path: string
-): Promise<boolean> {
-    const lock = new FileLock(String(datasetId) + path)
+}): Promise<boolean> {
+    const lock = new FileLock(String(options.datasetId) + options.path)
     if (!lock.acquireLock()) {
         console.log(
             "Failed to acquire lock, another process may be using the file"
@@ -57,35 +52,33 @@ export async function submitDatasetChallengeProofs(
         console.log(
             "Start submitDatasetChallengeProofs:",
             "network:",
-            network,
+            options.context.network,
             "datasetId:",
-            datasetId,
+            options.datasetId,
             "dataType:",
             "path:",
-            path
+            options.path
         )
 
         const datasetChallengeProof = JSON.parse(
-            fs.readFileSync(path).toString()
+            fs.readFileSync(options.path).toString()
         )
-        const datasetChallengeEvm =
-            network === "calibration"
-                ? datasetChallengeEvm_Calibration
-                : datasetChallengeEvm_Main
 
         const criteria = await checkSubmissionChallengeProofsCriteria(
-            datasetChallengeEvm,
-            datasetId,
-            process.env.ADDRESS as string,
+            options.context.evm.datasetChallenge,
+            options.datasetId,
+            options.context.account,
             datasetChallengeProof.RandomSeed
         )
         if (!criteria) {
             return false
         }
 
-        datasetChallengeEvm.getWallet().add(process.env.PRIVATE_KEY as string)
+        options.context.evm.datasetChallenge
+            .getWallet()
+            .add(options.context.privateKey)
         await handleEvmError(
-            datasetChallengeEvm.submitDatasetChallengeProofs(
+            options.context.evm.datasetChallenge.submitDatasetChallengeProofs(
                 datasetChallengeProof.DatasetId,
                 datasetChallengeProof.RandomSeed,
                 datasetChallengeProof.Leaves,
@@ -110,15 +103,17 @@ export async function submitDatasetChallengeProofs(
  * @param chunk The number of dataset proof chunks to submit at a time.
  * @returns A promise that resolves to true if the submission is successful, otherwise false.
  */
-export async function submitDatasetProof(
-    network: string,
-    datasetId: number,
-    dataType: DataType,
-    mappingFilesAccessMethod: string,
-    path: string,
+export async function submitDatasetProof(options: {
+    context: Context
+    datasetId: number
+    dataType: DataType
+    mappingFilesAccessMethod: string
+    path: string
     chunk: number
-): Promise<boolean> {
-    const lock = new FileLock(String(datasetId) + String(dataType))
+}): Promise<boolean> {
+    const lock = new FileLock(
+        String(options.datasetId) + String(options.dataType)
+    )
     if (!lock.acquireLock()) {
         console.log(
             "Failed to acquire lock, another process may be using the file"
@@ -129,28 +124,24 @@ export async function submitDatasetProof(
         console.log(
             "Start submitDatasetProof:",
             "network:",
-            network,
+            options.context.network,
             "datasetId:",
-            datasetId,
+            options.datasetId,
             "dataType:",
-            dataType,
+            options.dataType,
             "mappingFilesAccessMethod:",
-            mappingFilesAccessMethod,
+            options.mappingFilesAccessMethod,
             "path:",
-            path,
+            options.path,
             "chunk:",
-            chunk
+            options.chunk
         )
 
         const submitInfo = new DatasetProofSubmitInfo({
-            datasetProofEvm:
-                network === "calibration"
-                    ? datasetProofEvm_Calibration
-                    : datasetProofEvm_Main,
-            datasetId: datasetId,
-            dataType: dataType,
-            mappingFilesAccessMethod: mappingFilesAccessMethod,
-            chunk: chunk,
+            datasetId: options.datasetId,
+            dataType: options.dataType,
+            mappingFilesAccessMethod: options.mappingFilesAccessMethod,
+            chunk: options.chunk,
             completed: false,
             leafIndex: 0,
             leafHashes: [],
@@ -159,17 +150,23 @@ export async function submitDatasetProof(
 
         if (
             !(await checkSubmissionProofsCriteria(
-                submitInfo.datasetProofEvm,
-                datasetId,
-                dataType
+                options.context.evm.datasetProof,
+                options.datasetId,
+                options.dataType
             ))
         ) {
             return true
         }
 
-        const datasetProof = JSON.parse(fs.readFileSync(path).toString())
+        const datasetProof = JSON.parse(
+            fs.readFileSync(options.path).toString()
+        )
 
-        return await handlerSubmitDatasetProof(submitInfo, datasetProof)
+        return await handlerSubmitDatasetProof({
+            context: options.context,
+            submitInfo,
+            datasetProof,
+        })
     } finally {
         lock.releaseLock()
     }
@@ -246,68 +243,67 @@ async function checkSubmissionProofsCriteria(
  * @param datasetProof The dataset proof data.
  * @returns A promise that resolves to true if the submission is successful, otherwise false.
  */
-async function handlerSubmitDatasetProof(
-    submitInfo: DatasetProofSubmitInfo,
+async function handlerSubmitDatasetProof(options: {
+    context: Context
+    submitInfo: DatasetProofSubmitInfo
     datasetProof: DatasetProof
-): Promise<boolean> {
-    submitInfo.datasetProofEvm
-        .getWallet()
-        .add(process.env.PRIVATE_KEY as string)
+}): Promise<boolean> {
+    options.context.evm.datasetProof.getWallet().add(options.context.privateKey)
 
-    if (!handlerSubmitDatasetProofRoot(submitInfo, datasetProof)) {
+    if (!handlerSubmitDatasetProofRoot(options)) {
         return false
     }
 
     const index = await handleEvmError(
-        submitInfo.datasetProofEvm.getDatasetProofCount(
-            submitInfo.datasetId,
-            submitInfo.dataType
+        options.context.evm.datasetProof.getDatasetProofCount(
+            options.submitInfo.datasetId,
+            options.submitInfo.dataType
         )
     )
-    submitInfo.updateleafIndex(index)
+    options.submitInfo.updateleafIndex(index)
 
-    while (!submitInfo.completed) {
-        submitInfo.updateDatasetProof(datasetProof)
+    while (!options.submitInfo.completed) {
+        options.submitInfo.updateDatasetProof(options.datasetProof)
         console.log(
             "Start submitDatasetProof, leafIndex:",
-            submitInfo.leafIndex
+            options.submitInfo.leafIndex
         )
         const tx = await handleEvmError(
-            submitInfo.datasetProofEvm.submitDatasetProof(
-                submitInfo.datasetId,
-                submitInfo.dataType,
-                submitInfo.leafHashes,
-                submitInfo.leafIndex,
-                submitInfo.leafSizes,
-                submitInfo.completed
+            options.context.evm.datasetProof.submitDatasetProof(
+                options.submitInfo.datasetId,
+                options.submitInfo.dataType,
+                options.submitInfo.leafHashes,
+                options.submitInfo.leafIndex,
+                options.submitInfo.leafSizes,
+                options.submitInfo.completed
             )
         )
 
         // Wait chain success interval
         await handleEvmError(
-            submitInfo.datasetProofEvm.waitForBlockHeight(
+            options.context.evm.datasetProof.waitForBlockHeight(
                 tx.height + chainSuccessInterval
             )
         )
         const index = await handleEvmError(
-            submitInfo.datasetProofEvm.getDatasetProofCount(
-                submitInfo.datasetId,
-                submitInfo.dataType
+            options.context.evm.datasetProof.getDatasetProofCount(
+                options.submitInfo.datasetId,
+                options.submitInfo.dataType
             )
         )
 
         const current = Math.min(
-            submitInfo.leafIndex + submitInfo.chunk,
-            datasetProof.LeafHashes.length
+            options.submitInfo.leafIndex + options.submitInfo.chunk,
+            options.datasetProof.LeafHashes.length
         )
         if (index !== current) {
             console.log("SubmitDatasetProof fail, leafIndex:", index)
             return false
         }
 
-        submitInfo.updateleafIndex(index)
+        options.submitInfo.updateleafIndex(index)
         console.log("SubmitDatasetProof success, leafIndex:", index)
-        console.log("submitInfo", submitInfo)
+        console.log("submitInfo", options.submitInfo)
     }
 
     return true
@@ -319,37 +315,38 @@ async function handlerSubmitDatasetProof(
  * @param datasetProof - The dataset proof data.
  * @returns A promise resolving to true if the submission is successful, otherwise false.
  */
-async function handlerSubmitDatasetProofRoot(
-    submitInfo: DatasetProofSubmitInfo,
+async function handlerSubmitDatasetProofRoot(options: {
+    context: Context
+    submitInfo: DatasetProofSubmitInfo
     datasetProof: DatasetProof
-): Promise<boolean> {
+}): Promise<boolean> {
     const submitter = await handleEvmError(
-        submitInfo.datasetProofEvm.getDatasetProofSubmitter(
-            submitInfo.datasetId
+        options.context.evm.datasetProof.getDatasetProofSubmitter(
+            options.submitInfo.datasetId
         )
     )
     if (submitter == defaultEthAddress) {
         console.log("Submitter is null, start submitDatasetProofRoot~")
 
         const tx = await handleEvmError(
-            submitInfo.datasetProofEvm.submitDatasetProofRoot(
-                submitInfo.datasetId,
-                submitInfo.dataType,
-                submitInfo.mappingFilesAccessMethod,
-                datasetProof.Root
+            options.context.evm.datasetProof.submitDatasetProofRoot(
+                options.submitInfo.datasetId,
+                options.submitInfo.dataType,
+                options.submitInfo.mappingFilesAccessMethod,
+                options.datasetProof.Root
             )
         )
 
         // Wait chain success interval
         await handleEvmError(
-            submitInfo.datasetProofEvm.waitForBlockHeight(
+            options.context.evm.datasetProof.waitForBlockHeight(
                 tx.height + chainSuccessInterval
             )
         )
 
         const submitter = await handleEvmError(
-            submitInfo.datasetProofEvm.getDatasetProofSubmitter(
-                submitInfo.datasetId
+            options.context.evm.datasetProof.getDatasetProofSubmitter(
+                options.submitInfo.datasetId
             )
         )
         if (submitter == defaultEthAddress) {
