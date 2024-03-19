@@ -67,7 +67,7 @@ export async function submitDatasetChallengeProofs(options: {
         const criteria = await checkSubmissionChallengeProofsCriteria(
             options.context.evm.datasetChallenge,
             options.datasetId,
-            options.context.account,
+            process.env.datasetAuditerAccount!,
             datasetChallengeProof.RandomSeed
         )
         if (!criteria) {
@@ -76,7 +76,7 @@ export async function submitDatasetChallengeProofs(options: {
 
         options.context.evm.datasetChallenge
             .getWallet()
-            .add(options.context.privateKey)
+            .add(process.env.datasetAuditerPrivateKey!)
         await handleEvmError(
             options.context.evm.datasetChallenge.submitDatasetChallengeProofs(
                 datasetChallengeProof.DatasetId,
@@ -248,7 +248,9 @@ async function handlerSubmitDatasetProof(options: {
     submitInfo: DatasetProofSubmitInfo
     datasetProof: DatasetProof
 }): Promise<boolean> {
-    options.context.evm.datasetProof.getWallet().add(options.context.privateKey)
+    options.context.evm.datasetProof
+        .getWallet()
+        .add(process.env.datasetPreparerPrivateKey!)
 
     if (!handlerSubmitDatasetProofRoot(options)) {
         return false

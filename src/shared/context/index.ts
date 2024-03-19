@@ -61,8 +61,6 @@ import {
  * Configuration for Context.
  */
 export interface Context {
-    account: string
-    privateKey: string
     network: string
     evm: EvmContext
 }
@@ -95,8 +93,6 @@ export class Context {
      */
     constructor() {
         this.network = process.env.NETWORK!
-        this.account = process.env.ACCOUNT!
-        this.privateKey = process.env.PRIVATE_KEY!
 
         this.evm = {} as EvmContext
 

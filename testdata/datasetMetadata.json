@@ -1,0 +1,14 @@
+{
+    "client":1, 
+    "title": "string",
+    "industry": "string",
+    "name": "string",
+    "description": "string",
+    "source": "string",
+    "accessMethod": "string",
+    "sizeInBytes": 1,
+    "isPublic": true,
+    "version": 1,
+    "proofBlockCount": 0,
+    "auditBlockCount": 0
+}

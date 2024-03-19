@@ -18,18 +18,35 @@
  *  limitations under the respective licenses.
  ********************************************************************************/
 
-import dotenv from "dotenv"
-import { run } from "./cmd"
-import { Context } from "./shared/context"
-
 /**
- * Main function to run the application.
- * Calls the `run` function to execute the command-line interface.
+ * Interface representing dataset metadata information for a dataset.
+ * @interface
  */
-async function main() {
-    dotenv.config()
-    await run(new Context())
+export interface DatasetMetadata {
+    client: number
+    title: string
+    industry: string
+    name: string
+    description: string
+    source: string
+    accessMethod: string
+    sizeInBytes: bigint
+    isPublic: boolean
+    version: bigint
+    proofBlockCount: bigint
+    auditBlockCount: bigint
 }
 
-// Call the main function to start the application
-main()
+/**
+ * Interface representing dataset replica requirements information for a dataset.
+ * @interface
+ */
+export interface DatasetReplicaRequirements {
+    datasetId: number
+    dataPreparers: string[][]
+    storageProviders: string[][]
+    regions: bigint[]
+    countrys: bigint[]
+    citys: bigint[][]
+    amount: bigint
+}
