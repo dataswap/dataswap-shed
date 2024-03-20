@@ -110,3 +110,30 @@ export class DatasetProof extends Entity<DatasetProof> {
         })
     }
 }
+
+/**
+ * Interface representing dataset challenge proof information for a dataset.
+ * @interface
+ */
+export interface DatasetChallengeProof {
+    RandomSeed: bigint
+    Leaves: string[]
+    Siblings: string[][]
+    Paths: bigint[]
+}
+
+/**
+ * Class representing a DatasetChallengeProof entity.
+ * @class
+ * @extends Entity<DatasetChallengeProof>
+ */
+export class DatasetChallengeProof extends Entity<DatasetChallengeProof> {
+    constructor(data?: ValueFields<DatasetChallengeProof>) {
+        super({
+            RandomSeed: data?.RandomSeed || BigInt(0),
+            Leaves: data?.Leaves || [],
+            Siblings: data?.Siblings || [],
+            Paths: data?.Paths || [],
+        })
+    }
+}
