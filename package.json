@@ -4,9 +4,12 @@
   "description": "dataswap toolset",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
+  "bin": "dist/index.js",
   "scripts": {
     "build": "rm -rf ./dist;npx tsc",
     "build:test": "rm -rf ./dist-test;tsc -p tsconfig.test.json;",
+    "package": "rm -rf ./dist;npx tsc;pkg .",
+    "package:macos": "rm -rf ./dist;npx tsc;pkg . --target node18-macos-x64",
     "test": "npm run build:test;mocha --exit",
     "postinstall": "patch-package",
     "readme": "npx readme-md-generator -p ./templates/readme.md",
@@ -35,11 +38,21 @@
   },
   "homepage": "https://github.com/dataswap/shed#readme",
   "devDependencies": {
+    "@dataswapjs/dataswapjs": "^0.25.0",
+    "@types/mocha": "^10.0.6",
+    "@types/node": "^20.11.26",
+    "@types/yargs": "^17.0.32",
     "all-contributors-cli": "^6.26.1",
     "git-cz": "^4.9.0",
     "patch-package": "^8.0.0",
+    "pkg": "^5.8.1",
     "prettier": "3.2.5",
     "readme-md-generator": "^1.0.0",
-    "release-it": "^17.1.1"
+    "release-it": "^17.1.1",
+    "typescript": "^5.4.2",
+    "yargs": "^17.7.2"
+  },
+  "dependencies": {
+    "fastify": "^4.26.2"
   }
 }
