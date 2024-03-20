@@ -5,24 +5,13 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "args": [
-                "--require",
-                "ts-node/register",
-                "--require",
-                "${workspaceFolder}/test/fixtures.ts",
-                "--no-config",
-                "-u",
-                "bdd",
-                "--timeout",
-                "999999",
-                "--colors",
-                "${workspaceFolder}/test/**/*.test.ts"
-            ],
-            "internalConsoleOptions": "openOnSessionStart",
-            "name": "Mocha Tests",
-            "program": "${workspaceFolder}/node_modules/mocha/bin/_mocha",
+            "name": "Launch via ts-node",
+            "type": "node",
             "request": "launch",
-            "type": "node"
+            "runtimeArgs": ["-r", "ts-node/register"],
+            "args": ["${workspaceFolder}/src/index.ts", "getEscrowRequirement", "--datasetId", "1", "--type", "5"],
+            "cwd": "${workspaceFolder}",
+            "sourceMaps": true
         }
     ]
 }
