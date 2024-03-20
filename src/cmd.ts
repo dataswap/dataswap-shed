@@ -28,7 +28,7 @@ import {
     submitDatasetProof,
     submitDatasetChallengeProofs,
 } from "./dataset/proof/repo"
-import { getEscrowRequirement } from "./finance/repo"
+import { getEscrowRequirement, deposit } from "./finance/repo"
 
 import { Context } from "./shared/context"
 
@@ -130,6 +130,38 @@ const argv = yargs
             },
         }
     )
+    .command("deposit", "deposit amount", {
+        datasetId: {
+            description: "Dataset Id",
+            alias: "i",
+            demandOption: true,
+            type: "number",
+        },
+        matchingId: {
+            description: "Matching Id",
+            alias: "m",
+            demandOption: true,
+            type: "number",
+        },
+        owner: {
+            description: "The finance account user",
+            alias: "o",
+            demandOption: true,
+            type: "string",
+        },
+        token: {
+            description: "The finance token type",
+            alias: "t",
+            type: "string",
+            default: "0x0000000000000000000000000000000000000000",
+        },
+        amount: {
+            description: "deposit amount",
+            alias: "a",
+            demandOption: true,
+            type: "string",
+        },
+    })
     .command("getEscrowRequirement", "Get escrow requirement", {
         datasetId: {
             description: "Dataset Id",
@@ -196,6 +228,16 @@ export async function run(context: Context) {
                 context,
                 datasetId: Number(argv.datasetId),
                 path: String(argv.path),
+            })
+            break
+        case "deposit":
+            await deposit({
+                context,
+                datasetId: Number(argv.datasetId),
+                matchingId: Number(argv.matchingId),
+                owner: String(argv.owner),
+                token: String(argv.token),
+                amount: argv.amount as bigint,
             })
             break
         case "getEscrowRequirement":
