@@ -20,6 +20,11 @@
 
 import yargs from "yargs"
 import {
+    submitDatasetMetadata,
+    updateDatasetTimeoutParameters,
+    submitDatasetReplicaRequirements,
+} from "./dataset/metadata/repo"
+import {
     submitDatasetProof,
     submitDatasetChallengeProofs,
 } from "./dataset/proof/repo"
@@ -31,6 +36,50 @@ import { Context } from "./shared/context"
  * Parses the command line arguments and executes the corresponding command.
  */
 const argv = yargs
+    .command("submitDatasetMetadata", "Submit dataset metadata", {
+        path: {
+            description: "Dataset metadata file path",
+            alias: "p",
+            demandOption: true,
+            type: "string",
+        },
+    })
+    .command(
+        "updateDatasetTimeoutParameters",
+        "Update dataset timeout parameters",
+        {
+            datasetId: {
+                description: "Dataset Id",
+                alias: "i",
+                demandOption: true,
+                type: "number",
+            },
+            proofBlockCount: {
+                description: "Proof block count",
+                alias: "p",
+                demandOption: true,
+                type: "string",
+            },
+            auditBlockCount: {
+                description: "Audit block count",
+                alias: "a",
+                demandOption: true,
+                type: "string",
+            },
+        }
+    )
+    .command(
+        "submitDatasetReplicaRequirements",
+        "Submit dataset replica requirements",
+        {
+            path: {
+                description: "Dataset ReplicaRequirements file path",
+                alias: "p",
+                demandOption: true,
+                type: "string",
+            },
+        }
+    )
     .command("submitDatasetProof", "Submit dataset proof", {
         datasetId: {
             description: "Dataset Id",
@@ -110,6 +159,28 @@ const argv = yargs
  */
 export async function run(context: Context) {
     switch (argv._[0]) {
+        case "submitDatasetMetadata":
+            await submitDatasetMetadata({
+                context,
+                path: String(argv.path),
+            })
+            break
+        case "updateDatasetTimeoutParameters":
+            console.log(
+                await updateDatasetTimeoutParameters({
+                    context,
+                    datasetId: Number(argv.datasetId),
+                    proofBlockCount: argv.proofBlockCount as bigint,
+                    auditBlockCount: argv.auditBlockCount as bigint,
+                })
+            )
+            break
+        case "submitDatasetReplicaRequirements":
+            await submitDatasetReplicaRequirements({
+                context,
+                path: String(argv.path),
+            })
+            break
         case "submitDatasetProof":
             await submitDatasetProof({
                 context,
@@ -129,6 +200,7 @@ export async function run(context: Context) {
             break
         case "getEscrowRequirement":
             console.log(
+                "amount: ",
                 await getEscrowRequirement({
                     context,
                     datasetId: Number(argv.datasetId),

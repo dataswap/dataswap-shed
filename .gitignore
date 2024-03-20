@@ -7,4 +7,3 @@ shed-macos
 shed-win.exe
 .env
 yarn.lock
-testdata

@@ -1,0 +1,99 @@
+{
+    "dataPreparers": [
+        [
+            "0x3D08114dD4F65B5DDCc760884249D9d1AE435Dee",
+            "0xC2390a70E3D6C274c637fD6037967BF4663e07eE",
+            "0x253d87fD415cbE26f530CA401Ce8AA113C32f1f5"
+        ],
+        [
+            "0x979f3C21f409545249243d64e1518F3be60f4Eb7",
+            "0x4cDf59ddb23668165b7D109D3416Aa5FFE682B1a",
+            "0x192b12ff82304dA9E5D37B425755757d647a2b31"
+        ],
+        [
+            "0xDfCc32262CB62f1eedC5f3FC58dE2F3fAB89B73d",
+            "0x41442822716d34cB6ACb0978dE60806187c9175e",
+            "0x4681Ea9e8097d149cD12C048A942124D3BCE1dcF"
+        ],
+        [
+            "0x7F19C6A84EE71Bc2F571b09A52Aad87e3452d535",
+            "0xB5D0bE97F9d6e5e6059fc8a5F19A914f46D023C9",
+            "0xB641A97f2F9da332EE74af96d2F701BA639608A2"
+        ],
+        [
+            "0xf705B61cbc14C979d25D5025CB7B76803dA15a5c",
+            "0x22f66354D765027340Df0C046a7f8f64d1370Af3",
+            "0xB8DF85865D0268c1C927EF0Eb7C3d54f034BBBE1"
+        ]
+    ],
+    "storageProviders": [
+        [
+            "0xca942f0fd39185d971d1d58E151645e596FC7Eff",
+            "0xd5AF749423FA0ab211240eF26f73d771a2Cb6778",
+            "0x598074BD62dD6e14E4dd15Fc908FB409deE77f64"
+        ],
+        [
+            "0x184Aca59cA6724D3ea7D347FCec3d3f6B71E996c",
+            "0x750b5F3524e5f96b949018fB58EEc36F49402004",
+            "0x22822605a14C44158B7354E0B4ABebd4722Fa312"
+        ],
+        [
+            "0xaCd80C6A5839e4d80748916870A2f596ae052777",
+            "0x51e13328149150Fe4171623aeb69aDd5A62Cd05a",
+            "0xF1ef4dF1dC966331BFE4Bdd36bD351A55e61BeF1"
+        ],
+        [
+            "0x0d86402Ee34ff4cEf2051B815267d408f46e4fbB",
+            "0xe71E0Bc1F84013Af66C6412ae2dbBaF13fEa72f3",
+            "0x3eE3b0E365635633B6E05735f55d922A197D1fa8"
+        ],
+        [
+            "0xE22211411a799A2196f5D6E49Cc9930B5604F1d2",
+            "0x74db2A6D75705CE53E70ca0eEEed037e0818d174",
+            "0xcbE047c7D7214aD669fDe719f869f5816CDf4379"
+        ]
+    ],
+    "regions": [
+        585,
+        1094,
+        2763,
+        3474,
+        4211
+    ],
+    "countrys": [
+        517,
+        1300,
+        2040,
+        3063,
+        4687
+    ],
+    "citys": [
+        [
+            202186,
+            1302254,
+            2236269
+        ],
+        [
+            874493,
+            1643077,
+            2734308
+        ],
+        [
+            829857,
+            1762976,
+            2620313
+        ],
+        [
+            936103,
+            1278556,
+            2974395
+        ],
+        [
+            904553,
+            1701439,
+            2437775
+        ]
+    ],
+    "amount": 0,
+    "datasetId": 3
+}
