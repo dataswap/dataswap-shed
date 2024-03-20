@@ -24,6 +24,48 @@ import { handleEvmError } from "../../shared/utils/utils"
 import { Types } from "../types"
 
 /**
+ * Deposits funds into a smart contract for a specific dataset and matching ID.
+ * @param options - The options object containing the context, dataset ID, matching ID, owner, and token.
+ * @returns A promise indicating whether the deposit was successful.
+ */
+export async function deposit(options: {
+    context: Context
+    datasetId: number
+    matchingId: number
+    owner: string
+    token: string
+    amount: bigint
+}) {
+    console.log(
+        "Start deposit:",
+        "datasetId:",
+        options.datasetId,
+        "matchingId:",
+        options.matchingId,
+        "owner:",
+        options.owner,
+        "token:",
+        options.token,
+        "amount:",
+        options.amount
+    )
+
+    options.context.evm.finance.getWallet().add(process.env.depositPrivateKey!)
+
+    await handleEvmError(
+        options.context.evm.finance.deposit(
+            options.datasetId,
+            options.matchingId,
+            options.owner,
+            options.token,
+            {
+                value: options.amount,
+            }
+        )
+    )
+}
+
+/**
  * Retrieves the escrow requirement based on the provided options.
  * @param options - The options object containing the context, dataset ID, size, and type.
  * @returns A promise that resolves to the escrow requirement as a bigint.
