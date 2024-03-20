@@ -19,13 +19,14 @@
  ********************************************************************************/
 
 import { run } from "./cmd"
+import { Context } from "./shared/context"
 
 /**
  * Main function to run the application.
  * Calls the `run` function to execute the command-line interface.
  */
 async function main() {
-    await run()
+    await run(new Context())
 }
 
 // Call the main function to start the application

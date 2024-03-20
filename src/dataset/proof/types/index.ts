@@ -27,7 +27,6 @@ import { DataType } from "@dataswapjs/dataswapjs"
  * @interface
  */
 export interface DatasetProofSubmitInfo {
-    datasetProofEvm: any
     datasetId: number
     dataType: DataType
     mappingFilesAccessMethod: string
@@ -46,7 +45,6 @@ export interface DatasetProofSubmitInfo {
 export class DatasetProofSubmitInfo extends Entity<DatasetProofSubmitInfo> {
     constructor(data?: ValueFields<DatasetProofSubmitInfo>) {
         super({
-            datasetProofEvm: data?.datasetProofEvm || undefined,
             datasetId: data?.datasetId || 0,
             dataType: data?.dataType || DataType.Source,
             mappingFilesAccessMethod: data?.mappingFilesAccessMethod || "",
