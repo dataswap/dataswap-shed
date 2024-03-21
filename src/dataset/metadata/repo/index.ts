@@ -20,112 +20,133 @@
 
 import fs from "fs"
 import { DatasetState } from "@dataswapjs/dataswapjs"
-import { handleEvmError } from "../../../shared/utils/utils"
-import { chainSuccessInterval } from "../../../shared/constant"
+import { handleEvmError, logMethodCall } from "../../../shared/utils/utils"
+import { chainSuccessInterval, blockPeriod } from "../../../shared/constant"
 import { DatasetMetadata, DatasetReplicaRequirements } from "../types"
 import { Context } from "../../../shared/context"
 
 /**
- * Submits dataset metadata to the blockchain.
- * @param options - The options object containing the context and file path.
- * @returns A promise indicating whether the submission was successful.
+ * Represents a collection of dataset metadata related operations.
  */
-export async function submitDatasetMetadata(options: {
-    context: Context
-    path: string
-}): Promise<void> {
-    console.log(
-        "Start submitDatasetMetadata:",
-        "network:",
-        options.context.network,
-        "path:",
-        options.path
-    )
+export class DatasetMetadatas {
+    /**
+     * Submits dataset metadata to the blockchain.
+     * @param options - The options object containing the context and file path.
+     * @returns A promise indicating whether the submission was successful.
+     */
+    @logMethodCall(["context"])
+    async submitDatasetMetadata(options: {
+        context: Context
+        path: string
+    }): Promise<{
+        datasetId: number
+        proofBlockCount: bigint
+        auditBlockCount: bigint
+    }> {
+        const datasetMetadata = JSON.parse(
+            fs.readFileSync(options.path).toString()
+        ) as DatasetMetadata
 
-    const datasetMetadata = JSON.parse(
-        fs.readFileSync(options.path).toString()
-    ) as DatasetMetadata
+        let datasetId
+        if (
+            await handleEvmError(
+                options.context.evm.datasetMetadata.hasDatasetMetadata(
+                    datasetMetadata.accessMethod
+                )
+            )
+        ) {
+            console.log("Dataset metadata had submited")
+            datasetId = Number(
+                await handleEvmError(
+                    options.context.evm.datasetMetadata.getDatasetIdForAccessMethod(
+                        datasetMetadata.accessMethod
+                    )
+                )
+            )
+        } else {
+            options.context.evm.datasetMetadata
+                .getWallet()
+                .add(process.env.storageClientPrivateKey!)
+            const tx = await handleEvmError(
+                options.context.evm.datasetMetadata.submitDatasetMetadata(
+                    datasetMetadata.client,
+                    datasetMetadata.title,
+                    datasetMetadata.industry,
+                    datasetMetadata.name,
+                    datasetMetadata.description,
+                    datasetMetadata.source,
+                    datasetMetadata.accessMethod,
+                    datasetMetadata.sizeInBytes,
+                    datasetMetadata.isPublic,
+                    datasetMetadata.version
+                )
+            )
 
-    let datasetId
-    if (
-        await handleEvmError(
-            options.context.evm.datasetMetadata.hasDatasetMetadata(
-                datasetMetadata.accessMethod
+            // Get transaction receipt and event arguments
+            const receipt =
+                await options.context.evm.datasetMetadata.getTransactionReceipt(
+                    tx.hash
+                )
+
+            const ret = options.context.evm.datasetMetadata.getEvmEventArgs(
+                receipt!,
+                "DatasetMetadataSubmitted"
             )
-        )
-    ) {
-        console.log("Dataset metadata had submited")
-        datasetId = await handleEvmError(
-            options.context.evm.datasetMetadata.getDatasetIdForAccessMethod(
-                datasetMetadata.accessMethod
-            )
-        )
-    } else {
+
+            datasetId = Number(ret.data.datasetId)
+        }
+
+        const datasetTimeoutParameters =
+            await this.updateDatasetTimeoutParameters({
+                context: options.context,
+                datasetId,
+                proofBlockCount: datasetMetadata.proofBlockCount,
+                auditBlockCount: datasetMetadata.auditBlockCount,
+            })
+
+        return {
+            datasetId,
+            proofBlockCount: datasetTimeoutParameters.proofBlockCount,
+            auditBlockCount: datasetTimeoutParameters.auditBlockCount,
+        }
+    }
+
+    /**
+     * Update dataset timeout parameters to the blockchain.
+     * @param options - The options object containing the context and file path.
+     * @returns A promise indicating whether the submission was successful.
+     */
+    @logMethodCall(["context"])
+    async updateDatasetTimeoutParameters(options: {
+        context: Context
+        datasetId: number
+        proofBlockCount: bigint
+        auditBlockCount: bigint
+    }): Promise<{
+        state: boolean
+        proofBlockCount: bigint
+        auditBlockCount: bigint
+    }> {
         options.context.evm.datasetMetadata
             .getWallet()
             .add(process.env.storageClientPrivateKey!)
-        datasetId = await handleEvmError(
-            options.context.evm.datasetMetadata.submitDatasetMetadata(
-                datasetMetadata.client,
-                datasetMetadata.title,
-                datasetMetadata.industry,
-                datasetMetadata.name,
-                datasetMetadata.description,
-                datasetMetadata.source,
-                datasetMetadata.accessMethod,
-                datasetMetadata.sizeInBytes,
-                datasetMetadata.isPublic,
-                datasetMetadata.version
-            )
+
+        const minProofBlockCount = await handleEvmError(
+            options.context.evm.filplus.datasetRuleMinProofTimeout()
         )
-    }
+        const minAuditBlockCount = await handleEvmError(
+            options.context.evm.filplus.datasetRuleMinAuditTimeout()
+        )
 
-    const datasetTimeoutParameters = await updateDatasetTimeoutParameters({
-        context: options.context,
-        datasetId,
-        proofBlockCount: datasetMetadata.proofBlockCount,
-        auditBlockCount: datasetMetadata.auditBlockCount,
-    })
+        options.proofBlockCount =
+            options.proofBlockCount > minProofBlockCount
+                ? options.proofBlockCount
+                : minProofBlockCount + BigInt(1)
+        options.auditBlockCount =
+            options.auditBlockCount > minAuditBlockCount
+                ? options.auditBlockCount
+                : minAuditBlockCount + BigInt(1)
 
-    console.log({
-        datasetId,
-        proofBlockCount: datasetTimeoutParameters.proofBlockCount,
-        auditBlockCount: datasetTimeoutParameters.auditBlockCount,
-    })
-}
-
-/**
- * Update dataset timeout parameters to the blockchain.
- * @param options - The options object containing the context and file path.
- * @returns A promise indicating whether the submission was successful.
- */
-export async function updateDatasetTimeoutParameters(options: {
-    context: Context
-    datasetId: number
-    proofBlockCount: bigint
-    auditBlockCount: bigint
-}): Promise<{
-    state: boolean
-    proofBlockCount: bigint
-    auditBlockCount: bigint
-}> {
-    console.log(
-        "Start updateDatasetTimeoutParameters:",
-        "network:",
-        options.context.network,
-        "datasetId",
-        options.datasetId,
-        "proofBlockCount:",
-        options.proofBlockCount,
-        "auditBlockCount",
-        options.auditBlockCount
-    )
-
-    options.context.evm.datasetMetadata
-        .getWallet()
-        .add(process.env.storageClientPrivateKey!)
-
-    if (await isDatasetTimeoutParametersValid(options)) {
         const tx = await handleEvmError(
             options.context.evm.datasetMetadata.updateDatasetTimeoutParameters(
                 options.datasetId,
@@ -134,93 +155,85 @@ export async function updateDatasetTimeoutParameters(options: {
             )
         )
         // Wait chain success interval
-        await handleEvmError(
-            options.context.evm.datasetMetadata.waitForBlockHeight(
-                tx.height + chainSuccessInterval
+        await options.context.evm.datasetMetadata.waitForBlockHeight(
+            tx.blockNumber + chainSuccessInterval,
+            blockPeriod
+        )
+
+        const datasetTimeoutParameters = await handleEvmError(
+            options.context.evm.datasetMetadata.getDatasetTimeoutParameters(
+                options.datasetId
             )
         )
+        const state =
+            options.proofBlockCount ==
+                datasetTimeoutParameters.proofBlockCount &&
+            options.auditBlockCount == datasetTimeoutParameters.auditBlockCount
+                ? true
+                : false
+        return {
+            state,
+            proofBlockCount: datasetTimeoutParameters.proofBlockCount,
+            auditBlockCount: datasetTimeoutParameters.auditBlockCount,
+        }
     }
 
-    const datasetTimeoutParameters = await handleEvmError(
-        options.context.evm.datasetMetadata.getDatasetTimeoutParameters(
-            options.datasetId
+    /**
+     * Submits dataset replica requirements to the blockchain.
+     * @param options - The options object containing the context and file path.
+     * @returns A promise indicating whether the submission was successful.
+     */
+    @logMethodCall(["context"])
+    async submitDatasetReplicaRequirements(options: {
+        context: Context
+        path: string
+    }): Promise<boolean> {
+        const datasetReplicaRequirements = JSON.parse(
+            fs.readFileSync(options.path).toString()
+        ) as DatasetReplicaRequirements
+
+        const state = await handleEvmError(
+            options.context.evm.datasetMetadata.getDatasetState(
+                datasetReplicaRequirements.datasetId
+            )
         )
-    )
-    const state =
-        options.proofBlockCount == datasetTimeoutParameters.proofBlockCount &&
-        options.auditBlockCount == datasetTimeoutParameters.auditBlockCount
-            ? true
-            : false
-    return {
-        state,
-        proofBlockCount: datasetTimeoutParameters.proofBlockCount,
-        auditBlockCount: datasetTimeoutParameters.auditBlockCount,
-    }
-}
+        if (state != DatasetState.MetadataSubmitted) {
+            console.log("Dataset state is not MetadataSubmitted, do nothing~")
+            return true
+        }
 
-/**
- * Submits dataset replica requirements to the blockchain.
- * @param options - The options object containing the context and file path.
- * @returns A promise indicating whether the submission was successful.
- */
-export async function submitDatasetReplicaRequirements(options: {
-    context: Context
-    path: string
-}): Promise<boolean> {
-    console.log(
-        "Start submitDatasetReplicaRequirements:",
-        "network:",
-        options.context.network,
-        "path:",
-        options.path
-    )
-
-    const datasetReplicaRequirements = JSON.parse(
-        fs.readFileSync(options.path).toString()
-    ) as DatasetReplicaRequirements
-
-    const state = await handleEvmError(
-        options.context.evm.datasetMetadata.getDatasetState(
-            datasetReplicaRequirements.datasetId
+        options.context.evm.datasetRequirement
+            .getWallet()
+            .add(process.env.storageClientPrivateKey!)
+        await handleEvmError(
+            options.context.evm.datasetRequirement.submitDatasetReplicaRequirements(
+                datasetReplicaRequirements.datasetId,
+                datasetReplicaRequirements.dataPreparers,
+                datasetReplicaRequirements.storageProviders,
+                datasetReplicaRequirements.regions,
+                datasetReplicaRequirements.countrys,
+                datasetReplicaRequirements.citys,
+                datasetReplicaRequirements.amount
+            )
         )
-    )
-    if (state != DatasetState.MetadataSubmitted) {
-        console.log("Dataset state is not MetadataSubmitted, do nothing~")
+
         return true
     }
 
-    options.context.evm.datasetRequirement
-        .getWallet()
-        .add(process.env.storageClientPrivateKey!)
-    await handleEvmError(
-        options.context.evm.datasetRequirement.submitDatasetReplicaRequirements(
-            datasetReplicaRequirements.datasetId,
-            datasetReplicaRequirements.dataPreparers,
-            datasetReplicaRequirements.storageProviders,
-            datasetReplicaRequirements.regions,
-            datasetReplicaRequirements.countrys,
-            datasetReplicaRequirements.citys,
-            datasetReplicaRequirements.amount
+    /**
+     * Get dataset state from the blockchain.
+     * @param options - The options object containing the context and file path.
+     * @returns A promise indicating whether the submission was successful.
+     */
+    @logMethodCall(["context"])
+    async getDatasetState(options: {
+        context: Context
+        datasetId: number
+    }): Promise<DatasetState> {
+        return await handleEvmError(
+            options.context.evm.datasetMetadata.getDatasetState(
+                options.datasetId
+            )
         )
-    )
-
-    return true
-}
-
-async function isDatasetTimeoutParametersValid(options: {
-    context: Context
-    proofBlockCount: bigint
-    auditBlockCount: bigint
-}): Promise<boolean> {
-    const minProofBlockCount = await handleEvmError(
-        options.context.evm.filplus.datasetRuleMinProofTimeout()
-    )
-    const minAuditBlockCount = await handleEvmError(
-        options.context.evm.filplus.datasetRuleMinAuditTimeout()
-    )
-
-    return options.proofBlockCount >= minProofBlockCount &&
-        options.auditBlockCount >= minAuditBlockCount
-        ? true
-        : false
+    }
 }

@@ -9,7 +9,8 @@
             "type": "node",
             "request": "launch",
             "runtimeArgs": ["-r", "ts-node/register"],
-            "args": ["${workspaceFolder}/src/index.ts", "getEscrowRequirement", "--datasetId", "1", "--type", "5"],
+            "args": ["${workspaceFolder}/src/index.ts", "updateDatasetTimeoutParameters", "-i", "5", "-p", "200000", "-a", "200000"],
+            //"args": ["${workspaceFolder}/src/index.ts", "deposit", "-i", "5", "-m", "0", "-o", "0x09C6DEE9DB5e7dF2b18283c0CFCf714fEDB692d7", "-a", "10000000000"],
             "cwd": "${workspaceFolder}",
             "sourceMaps": true
         }

@@ -56,10 +56,18 @@ export class DatasetProofSubmitInfo extends Entity<DatasetProofSubmitInfo> {
         })
     }
 
-    updateleafIndex(leafIndex: number) {
+    /**
+     * Updates the leaf index for dataset proof.
+     * @param leafIndex - The new leaf index to be set.
+     */
+    updateLeafIndex(leafIndex: number) {
         this.leafIndex = leafIndex
     }
 
+    /**
+     * Updates the dataset proof based on the provided dataset proof object.
+     * @param datasetProof - The dataset proof object to update from.
+     */
     updateDatasetProof(datasetProof: DatasetProof) {
         if (this.leafIndex + this.chunk >= datasetProof.LeafHashes.length) {
             this.leafHashes = datasetProof.LeafHashes.slice(
