@@ -30,6 +30,9 @@ import {
     FinanceEvm,
     RolesEvm,
     FilplusEvm,
+    CarstoreEvm,
+    carstoreEvm_Calibration,
+    carstoreEvm_Main,
     datasetChallengeEvm_Calibration,
     datasetChallengeEvm_Main,
     datasetMetadataEvm_Calibration,
@@ -80,6 +83,7 @@ export interface EvmContext {
     matchingTarget: MatchingTargetEvm
     matchingMetadata: MatchingMetadataEvm
     matchingBids: MatchingBidsEvm
+    carstore: CarstoreEvm
     storages: StoragesEvm
 }
 
@@ -109,6 +113,7 @@ export class Context {
             this.evm.matchingTarget = matchingTargetEvm_Calibration
             this.evm.matchingBids = matchingBidsEvm_Calibration
             this.evm.storages = storagesEvm_Calibration
+            this.evm.carstore = carstoreEvm_Calibration
         } else {
             this.evm.roles = rolesEvm_Main
             this.evm.filplus = filplusEvm_Main
@@ -122,6 +127,7 @@ export class Context {
             this.evm.matchingTarget = matchingTargetEvm_Main
             this.evm.matchingBids = matchingBidsEvm_Main
             this.evm.storages = storagesEvm_Main
+            this.evm.carstore = carstoreEvm_Main
         }
     }
 }

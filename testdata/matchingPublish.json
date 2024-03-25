@@ -1,7 +1,7 @@
 {
    "matchingId": 1,
    "datasetId": 16,
-   "carsStarts": 0,
-   "carsEnds": 1,
+   "carsStarts": [7],
+   "carsEnds": [7],
    "complete": true
 }

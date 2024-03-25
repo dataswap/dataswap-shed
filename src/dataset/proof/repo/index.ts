@@ -31,7 +31,11 @@ import {
     FileLock,
     logMethodCall,
 } from "../../../shared/utils/utils"
-import { DatasetProof, DatasetProofSubmitInfo } from "../types"
+import {
+    DatasetProof,
+    DatasetProofSubmitInfo,
+    DatasetChallengeProof,
+} from "../types"
 import { Context } from "../../../shared/context"
 
 /**
@@ -157,7 +161,7 @@ export class DatasetProofs {
         datasetId: number
         path: string
     }): Promise<boolean> {
-        const lock = new FileLock(String(options.datasetId) + options.path)
+        const lock = new FileLock(options.path + String(options.datasetId))
         if (!lock.acquireLock()) {
             console.log(
                 "Failed to acquire lock, another process may be using the file"
@@ -167,14 +171,14 @@ export class DatasetProofs {
         try {
             const datasetChallengeProof = JSON.parse(
                 fs.readFileSync(options.path).toString()
-            )
+            ) as DatasetChallengeProof
 
             if (
                 !(await this.checkSubmissionChallengeProofsCriteria(
                     options.context.evm.datasetChallenge,
                     options.datasetId,
                     process.env.datasetAuditerAccount!,
-                    datasetChallengeProof.RandomSeed
+                    BigInt(datasetChallengeProof.RandomSeed)
                 ))
             ) {
                 return false
@@ -185,8 +189,8 @@ export class DatasetProofs {
                 .add(process.env.datasetAuditerPrivateKey!)
             await handleEvmError(
                 options.context.evm.datasetChallenge.submitDatasetChallengeProofs(
-                    datasetChallengeProof.DatasetId,
-                    datasetChallengeProof.RandomSeed,
+                    options.datasetId,
+                    BigInt(datasetChallengeProof.RandomSeed),
                     datasetChallengeProof.Leaves,
                     datasetChallengeProof.Siblings,
                     datasetChallengeProof.Paths
@@ -206,7 +210,7 @@ export class DatasetProofs {
      * @returns A promise that resolves to true if the submission is successful, otherwise false.
      */
     @logMethodCall(["context"])
-    async auditorStake(options: {
+    async nominateAsDatasetAuditorCandidate(options: {
         context: Context
         datasetId: number
     }): Promise<boolean> {
@@ -214,12 +218,47 @@ export class DatasetProofs {
             .getWallet()
             .add(process.env.datasetAuditerPrivateKey!)
         await handleEvmError(
-            options.context.evm.datasetChallenge.auditorStake(
-                options.datasetId,
-                BigInt("1000000000000000000")
+            options.context.evm.datasetChallenge.nominateAsDatasetAuditorCandidate(
+                options.datasetId
             )
         )
         return true
+    }
+
+    /**
+     * Checks if an account is the winner of a dataset challenge.
+     * @param options - The options object containing the context, dataset ID, and account.
+     * @returns A promise that resolves to true if the account is the winner, otherwise false.
+     */
+    @logMethodCall(["context"])
+    async isWinner(options: {
+        context: Context
+        datasetId: number
+        account: string
+    }): Promise<boolean> {
+        return await handleEvmError(
+            options.context.evm.datasetChallenge.isWinner(
+                options.datasetId,
+                options.account
+            )
+        )
+    }
+
+    /**
+     * Retrieves the auditor election state for a dataset.
+     * @param options - The options object containing the context and dataset ID.
+     * @returns A promise that resolves to the auditor election state.
+     */
+    @logMethodCall(["context"])
+    async getAuditorElectionState(options: {
+        context: Context
+        datasetId: number
+    }): Promise<boolean> {
+        return await handleEvmError(
+            options.context.evm.datasetChallenge.getAuditorElectionEndHeight(
+                options.datasetId
+            )
+        )
     }
 
     /**
@@ -253,14 +292,12 @@ export class DatasetProofs {
         submitInfo: DatasetProofSubmitInfo
         datasetProof: DatasetProof
     }): Promise<boolean> {
-        const root = ""
-        /// TODO: Add getDatasetProofRoot function, https://github.com/dataswap/core/issues/354
-        /*await handleEvmError(
-            options.context.evm.datasetProof.getDatasetProofRoot(
+        const root = await handleEvmError(
+            options.context.evm.datasetProof.getDatasetProofRootHash(
                 options.submitInfo.datasetId,
                 options.submitInfo.dataType
             )
-        )*/
+        )
 
         if (root == "") {
             console.log("Root is null, start submitDatasetProofRoot~")
