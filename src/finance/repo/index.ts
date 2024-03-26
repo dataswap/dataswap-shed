@@ -108,7 +108,7 @@ export class Finance {
         replicasCount: number
     }): Promise<bigint> {
         const price = await handleEvmError(
-            options.context.evm.filplus.getDatacapPricePreByte()
+            options.context.evm.filplus.financeRuleDatacapPricePreByte()
         )
 
         return BigInt(options.size) * BigInt(options.replicasCount) * price
@@ -125,10 +125,10 @@ export class Finance {
         size: number
     }): Promise<bigint> {
         const price = await handleEvmError(
-            options.context.evm.filplus.getDatacapChunkLandPricePreByte()
+            options.context.evm.filplus.financeRuleDatacapChunkLandPricePreByte()
         )
         const maxAllocated = await handleEvmError(
-            options.context.evm.filplus.datacapRulesMaxAllocatedSizePerTime()
+            options.context.evm.filplus.datacapRuleMaxAllocatedSizePerTime()
         )
 
         return BigInt(Math.min(options.size, maxAllocated)) * price
@@ -149,10 +149,10 @@ export class Finance {
             )
         )
         const submiterCount = await handleEvmError(
-            options.context.evm.filplus.getChallengeProofsSubmiterCount()
+            options.context.evm.filplus.datasetRuleMaxChallengeProofsSubmitersPerDataset()
         )
         const price = await handleEvmError(
-            options.context.evm.filplus.getChallengeProofsPricePrePoint()
+            options.context.evm.filplus.financeRuleChallengeProofsPricePrePoint()
         )
 
         return BigInt(submissionCount) * submiterCount * price
@@ -167,7 +167,7 @@ export class Finance {
         context: Context
     }): Promise<bigint> {
         return await handleEvmError(
-            options.context.evm.filplus.getChallengeAuditFee()
+            options.context.evm.filplus.finaceRuleDatasetChallengeProofCollateral()
         )
     }
 
@@ -180,7 +180,7 @@ export class Finance {
         context: Context
     }): Promise<bigint> {
         return await handleEvmError(
-            options.context.evm.filplus.getProofAuditFee()
+            options.context.evm.filplus.finaceRuleDatasetProofCollateral()
         )
     }
 
@@ -193,7 +193,7 @@ export class Finance {
         context: Context
     }): Promise<bigint> {
         return await handleEvmError(
-            options.context.evm.filplus.getDisputeAuditFee()
+            options.context.evm.filplus.financeRuleDisputeAuditCollateral()
         )
     }
 }

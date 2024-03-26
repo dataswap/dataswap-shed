@@ -18,10 +18,11 @@
  *  limitations under the respective licenses.
  ********************************************************************************/
 
-import yargs from "yargs"
+import yargs, { number } from "yargs"
 import { DatasetMetadatas } from "./dataset/metadata/repo"
 import { DatasetProofs } from "./dataset/proof/repo"
 import { Matching } from "./matching/repo"
+import { Storages } from "./storages/repo"
 import { Finance } from "./finance/repo"
 
 import { Context } from "./shared/context"
@@ -122,12 +123,38 @@ const argv = yargs
             type: "number",
         },
     })
-    .command("auditorStake", "auditor stake amount", {
+    .command("nominateAsDatasetAuditorCandidate", "auditor stake amount", {
         datasetId: {
             description: "Dataset Id",
             alias: "i",
             demandOption: true,
             type: "number",
+        },
+    })
+    .command(
+        "getAuditorElectionState",
+        "Get auditor election state: end=true,processing=false",
+        {
+            datasetId: {
+                description: "Dataset Id",
+                alias: "i",
+                demandOption: true,
+                type: "number",
+            },
+        }
+    )
+    .command("isWinner", "The account is the dataset auditor winner", {
+        datasetId: {
+            description: "Dataset Id",
+            alias: "i",
+            demandOption: true,
+            type: "number",
+        },
+        account: {
+            description: "winner account",
+            alias: "a",
+            demandOption: true,
+            type: "string",
         },
     })
     .command(
@@ -172,6 +199,14 @@ const argv = yargs
             type: "string",
         },
     })
+    .command("getCarsIds", "Get cars Ids", {
+        path: {
+            description: "cars Ids file path",
+            alias: "p",
+            demandOption: true,
+            type: "string",
+        },
+    })
     .command("bidding", "Bidding matching", {
         matchingId: {
             description: "Matching Id",
@@ -184,6 +219,66 @@ const argv = yargs
             alias: "a",
             demandOption: true,
             type: "string",
+        },
+    })
+    .command("registDataswapDatacap", "Regist dataswap datacap", {
+        size: {
+            description: "The regist dataswap datacap size",
+            alias: "s",
+            demandOption: true,
+            type: "number",
+        },
+    })
+    .command("requestAllocateDatacap", "Request allocate datacap", {
+        matchingId: {
+            description: "The matching Id",
+            alias: "m",
+            demandOption: true,
+            type: "number",
+        },
+    })
+    .command("submitStorageClaimIds", "Submit storage claimIds", {
+        path: {
+            description: "Storage claimIds file path",
+            alias: "p",
+            demandOption: true,
+            type: "string",
+        },
+    })
+    .command("completeStorage", "Complete storage", {
+        path: {
+            description: "Complete storage invalid claimIds file path",
+            alias: "p",
+            demandOption: true,
+            type: "string",
+        },
+    })
+    .command(
+        "isNextDatacapAllocationValid",
+        "Next datacap allocation valid state",
+        {
+            matchingId: {
+                description: "The matching Id",
+                alias: "m",
+                demandOption: true,
+                type: "number",
+            },
+        }
+    )
+    .command("isStorageCompleted", "Storage is Completed state", {
+        matchingId: {
+            description: "The matching Id",
+            alias: "m",
+            demandOption: true,
+            type: "number",
+        },
+    })
+    .command("isStorageExpiration", "Storage is expiration state", {
+        matchingId: {
+            description: "The matching Id",
+            alias: "m",
+            demandOption: true,
+            type: "number",
         },
     })
     .command("deposit", "deposit amount", {
@@ -315,10 +410,23 @@ export async function run(context: Context) {
                 datasetId: Number(argv.datasetId),
             })
             break
-        case "auditorStake":
-            await new DatasetProofs().auditorStake({
+        case "nominateAsDatasetAuditorCandidate":
+            await new DatasetProofs().nominateAsDatasetAuditorCandidate({
                 context,
                 datasetId: Number(argv.datasetId),
+            })
+            break
+        case "getAuditorElectionState":
+            await new DatasetProofs().getAuditorElectionState({
+                context,
+                datasetId: Number(argv.datasetId),
+            })
+            break
+        case "isWinner":
+            await new DatasetProofs().isWinner({
+                context,
+                datasetId: Number(argv.datasetId),
+                account: String(argv.account),
             })
             break
         case "submitDatasetChallengeProofs":
@@ -346,11 +454,59 @@ export async function run(context: Context) {
                 path: String(argv.path),
             })
             break
+        case "getCarsIds":
+            await new Matching().getCarsIds({
+                context,
+                path: String(argv.path),
+            })
+            break
         case "bidding":
             await new Matching().bidding({
                 context,
                 matchingId: Number(argv.matchingId),
                 amount: BigInt(String(argv.amount)),
+            })
+            break
+        case "registDataswapDatacap":
+            await new Storages().registDataswapDatacap({
+                context,
+                size: Number(argv.size),
+            })
+            break
+        case "requestAllocateDatacap":
+            await new Storages().requestAllocateDatacap({
+                context,
+                matchingId: Number(argv.matchingId),
+            })
+            break
+        case "submitStorageClaimIds":
+            await new Storages().submitStorageClaimIds({
+                context,
+                path: String(argv.path),
+            })
+            break
+        case "completeStorage":
+            await new Storages().completeStorage({
+                context,
+                path: String(argv.path),
+            })
+            break
+        case "isNextDatacapAllocationValid":
+            await new Storages().isNextDatacapAllocationValid({
+                context,
+                matchingId: Number(argv.matchingId),
+            })
+            break
+        case "isStorageCompleted":
+            await new Storages().isStorageCompleted({
+                context,
+                matchingId: Number(argv.matchingId),
+            })
+            break
+        case "isStorageExpiration":
+            await new Storages().isStorageExpiration({
+                context,
+                matchingId: Number(argv.matchingId),
             })
             break
         case "deposit":

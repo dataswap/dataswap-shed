@@ -38,10 +38,9 @@ export class Matching {
      * @returns A promise indicating whether the submission was successful.
      */
     @logMethodCall(["context"])
-    async createMatching(options: {
-        context: Context
-        path: string
-    }): Promise<boolean> {
+    async createMatching(options: { context: Context; path: string }): Promise<{
+        matchingId: number
+    }> {
         const matchingMetadataSubmitInfo = JSON.parse(
             fs.readFileSync(options.path).toString()
         ) as MatchingMetadataSubmitInfo
@@ -49,7 +48,7 @@ export class Matching {
         options.context.evm.matchingMetadata
             .getWallet()
             .add(process.env.datasetPreparerPrivateKey!)
-        await handleEvmError(
+        const tx = await handleEvmError(
             options.context.evm.matchingMetadata.createMatching(
                 matchingMetadataSubmitInfo.datasetId,
                 matchingMetadataSubmitInfo.bidSelectionRule,
@@ -61,7 +60,18 @@ export class Matching {
                 matchingMetadataSubmitInfo.additionalInfo
             )
         )
-        return true
+        // Get transaction receipt and event arguments
+        const receipt =
+            await options.context.evm.matchingMetadata.getTransactionReceipt(
+                tx.hash
+            )
+
+        const ret = options.context.evm.matchingMetadata.getEvmEventArgs(
+            receipt!,
+            "MatchingCreated"
+        )
+
+        return { matchingId: Number(ret.data.matchingId) }
     }
 
     /**
@@ -120,6 +130,24 @@ export class Matching {
             )
         )
         return true
+    }
+
+    /**
+     * Retrieves the IDs of cars based on the provided JSON file path.
+     *
+     * @param options An object containing the context and the path to the JSON file.
+     * @returns A Promise resolving to an array of BigInt values representing the car IDs.
+     */
+    @logMethodCall(["context"])
+    async getCarsIds(options: {
+        context: Context
+        path: string
+    }): Promise<bigint[]> {
+        const ids = JSON.parse(fs.readFileSync(options.path).toString())
+
+        return await handleEvmError(
+            options.context.evm.carstore.getCarsIds(ids.carsHash)
+        )
     }
 
     /**

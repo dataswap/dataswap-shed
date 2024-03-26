@@ -5,6 +5,6 @@
     "biddingPeriodBlockCount": 20,
     "storageCompletionPeriodBlocks": 100000,
     "biddingThreshold": 1000000000,
-    "replicaIndex": 1,
+    "replicaIndex": 0,
     "additionalInfo": "none"
 }
