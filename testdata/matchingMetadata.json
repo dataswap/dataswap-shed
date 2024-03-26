@@ -1,0 +1,10 @@
+{
+    "datasetId": 16,
+    "bidSelectionRule": 0,
+    "biddingDelayBlockCount": 30,
+    "biddingPeriodBlockCount": 20,
+    "storageCompletionPeriodBlocks": 100000,
+    "biddingThreshold": 1000000000,
+    "replicaIndex": 1,
+    "additionalInfo": "none"
+}

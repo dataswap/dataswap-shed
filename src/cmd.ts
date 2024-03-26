@@ -21,6 +21,7 @@
 import yargs from "yargs"
 import { DatasetMetadatas } from "./dataset/metadata/repo"
 import { DatasetProofs } from "./dataset/proof/repo"
+import { Matching } from "./matching/repo"
 import { Finance } from "./finance/repo"
 
 import { Context } from "./shared/context"
@@ -147,6 +148,44 @@ const argv = yargs
             },
         }
     )
+    .command("createMatching", "Create matching", {
+        path: {
+            description: "Matching metadata file path",
+            alias: "p",
+            demandOption: true,
+            type: "string",
+        },
+    })
+    .command("createTarget", "Create target", {
+        path: {
+            description: "Matching target file path",
+            alias: "p",
+            demandOption: true,
+            type: "string",
+        },
+    })
+    .command("publishMatching", "Publish matching", {
+        path: {
+            description: "Matching publish file path",
+            alias: "p",
+            demandOption: true,
+            type: "string",
+        },
+    })
+    .command("bidding", "Bidding matching", {
+        matchingId: {
+            description: "Matching Id",
+            alias: "m",
+            demandOption: true,
+            type: "number",
+        },
+        amount: {
+            description: "Bidding amount",
+            alias: "a",
+            demandOption: true,
+            type: "string",
+        },
+    })
     .command("deposit", "deposit amount", {
         datasetId: {
             description: "Dataset Id",
@@ -184,6 +223,15 @@ const argv = yargs
             description:
                 "dataset state: None = 0,MetadataSubmitted=1,RequirementSubmitted=2,WaitEscrow=3,ProofSubmitted=4,Approved=5,Rejected=6",
             alias: "i",
+            demandOption: true,
+            type: "number",
+        },
+    })
+    .command("getMatchingState", "Get matching state", {
+        matchingId: {
+            description:
+                "matching state: None = 0,Published = 1,InProgress = 2,Paused = 3,Closed = 4,Completed=5,Cancelled=6,Failed=7",
+            alias: "m",
             demandOption: true,
             type: "number",
         },
@@ -280,6 +328,31 @@ export async function run(context: Context) {
                 path: String(argv.path),
             })
             break
+        case "createMatching":
+            await new Matching().createMatching({
+                context,
+                path: String(argv.path),
+            })
+            break
+        case "createTarget":
+            await new Matching().createTarget({
+                context,
+                path: String(argv.path),
+            })
+            break
+        case "publishMatching":
+            await new Matching().publishMatching({
+                context,
+                path: String(argv.path),
+            })
+            break
+        case "bidding":
+            await new Matching().bidding({
+                context,
+                matchingId: Number(argv.matchingId),
+                amount: BigInt(String(argv.amount)),
+            })
+            break
         case "deposit":
             await new Finance().deposit({
                 context,
@@ -294,6 +367,12 @@ export async function run(context: Context) {
             await new DatasetMetadatas().getDatasetState({
                 context,
                 datasetId: Number(argv.datasetId),
+            })
+            break
+        case "getMatchingState":
+            await new Matching().getMatchingState({
+                context,
+                matchingId: Number(argv.matchingId),
             })
             break
         case "getEscrowRequirement":
