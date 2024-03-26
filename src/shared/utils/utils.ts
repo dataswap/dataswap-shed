@@ -72,3 +72,47 @@ export class FileLock {
         fs.unlinkSync(this.lockFilePath)
     }
 }
+
+/**
+ * A decorator function for logging method calls and their return values.
+ * @param propertiesToIgnore - The ignore properties.
+ * @returns The modified property descriptor with logging functionality.
+ */
+export function logMethodCall(propertiesToIgnore: string[] = []) {
+    return function (
+        target: any,
+        propertyKey: string,
+        descriptor: PropertyDescriptor
+    ) {
+        const originalMethod = descriptor.value
+        descriptor.value = async function (...args: any[]) {
+            // Function to filter out specified properties from objects
+            const filterProperties = (arg: any): any => {
+                if (
+                    typeof arg === "object" &&
+                    arg !== null &&
+                    propertiesToIgnore.length > 0
+                ) {
+                    const filteredArg: any = {}
+                    for (const prop in arg) {
+                        if (!propertiesToIgnore.includes(prop)) {
+                            filteredArg[prop] = arg[prop]
+                        }
+                    }
+                    return filteredArg
+                }
+                return arg
+            }
+
+            const loggedArgs = args.map(filterProperties)
+
+            console.log(`Calling ${propertyKey} with arguments: `, loggedArgs)
+
+            const result = await originalMethod.apply(this, args)
+
+            console.log(`${propertyKey} returned: `, result)
+            return result
+        }
+        return descriptor
+    }
+}

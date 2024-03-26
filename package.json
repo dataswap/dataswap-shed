@@ -38,7 +38,7 @@
   },
   "homepage": "https://github.com/dataswap/shed#readme",
   "devDependencies": {
-    "@dataswapjs/dataswapjs": "^0.25.0",
+    "@dataswapjs/dataswapjs": "^0.25.1",
     "@types/mocha": "^10.0.6",
     "@types/node": "^20.11.26",
     "@types/yargs": "^17.0.32",

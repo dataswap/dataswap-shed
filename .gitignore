@@ -6,4 +6,4 @@ shed-linux
 shed-macos
 shed-win.exe
 .env
-yarn.lock
+*.lock

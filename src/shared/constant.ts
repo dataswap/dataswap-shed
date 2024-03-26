@@ -19,4 +19,5 @@
  ********************************************************************************/
 
 export const chainSuccessInterval = 6 // Default 6 blocknumber
+export const blockPeriod = 30000 // Default block period 30s
 export const defaultEthAddress = "0x0000000000000000000000000000000000000000"

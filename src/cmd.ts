@@ -19,16 +19,9 @@
  ********************************************************************************/
 
 import yargs from "yargs"
-import {
-    submitDatasetMetadata,
-    updateDatasetTimeoutParameters,
-    submitDatasetReplicaRequirements,
-} from "./dataset/metadata/repo"
-import {
-    submitDatasetProof,
-    submitDatasetChallengeProofs,
-} from "./dataset/proof/repo"
-import { getEscrowRequirement, deposit } from "./finance/repo"
+import { DatasetMetadatas } from "./dataset/metadata/repo"
+import { DatasetProofs } from "./dataset/proof/repo"
+import { Finance } from "./finance/repo"
 
 import { Context } from "./shared/context"
 
@@ -112,6 +105,30 @@ const argv = yargs
             type: "number",
         },
     })
+    .command("completeEscrow", "completeEscrow", {
+        datasetId: {
+            description: "Dataset Id",
+            alias: "i",
+            demandOption: true,
+            type: "number",
+        },
+    })
+    .command("submitDatasetProofCompleted", "Submit dataset proof completed", {
+        datasetId: {
+            description: "Dataset Id",
+            alias: "i",
+            demandOption: true,
+            type: "number",
+        },
+    })
+    .command("auditorStake", "auditor stake amount", {
+        datasetId: {
+            description: "Dataset Id",
+            alias: "i",
+            demandOption: true,
+            type: "number",
+        },
+    })
     .command(
         "submitDatasetChallengeProofs",
         "Submit dataset challenge proofs",
@@ -162,6 +179,15 @@ const argv = yargs
             type: "string",
         },
     })
+    .command("getDatasetState", "Get dataset state", {
+        datasetId: {
+            description:
+                "dataset state: None = 0,MetadataSubmitted=1,RequirementSubmitted=2,WaitEscrow=3,ProofSubmitted=4,Approved=5,Rejected=6",
+            alias: "i",
+            demandOption: true,
+            type: "number",
+        },
+    })
     .command("getEscrowRequirement", "Get escrow requirement", {
         datasetId: {
             description: "Dataset Id",
@@ -169,8 +195,14 @@ const argv = yargs
             type: "number",
         },
         size: {
-            description: "Data size",
+            description:
+                "Data size, when DatacapCollateralRequirment and DatacapChunkLandRequirment",
             alias: "s",
+            type: "number",
+        },
+        replicasCount: {
+            description: "Replicas count, when DatacapCollateralRequirment",
+            alias: "r",
             type: "number",
         },
         type: {
@@ -192,29 +224,29 @@ const argv = yargs
 export async function run(context: Context) {
     switch (argv._[0]) {
         case "submitDatasetMetadata":
-            await submitDatasetMetadata({
+            await new DatasetMetadatas().submitDatasetMetadata({
                 context,
                 path: String(argv.path),
             })
             break
         case "updateDatasetTimeoutParameters":
             console.log(
-                await updateDatasetTimeoutParameters({
+                await new DatasetMetadatas().updateDatasetTimeoutParameters({
                     context,
                     datasetId: Number(argv.datasetId),
-                    proofBlockCount: argv.proofBlockCount as bigint,
-                    auditBlockCount: argv.auditBlockCount as bigint,
+                    proofBlockCount: BigInt(String(argv.proofBlockCount)),
+                    auditBlockCount: BigInt(String(argv.auditBlockCount)),
                 })
             )
             break
         case "submitDatasetReplicaRequirements":
-            await submitDatasetReplicaRequirements({
+            await new DatasetMetadatas().submitDatasetReplicaRequirements({
                 context,
                 path: String(argv.path),
             })
             break
         case "submitDatasetProof":
-            await submitDatasetProof({
+            await new DatasetProofs().submitDatasetProof({
                 context,
                 datasetId: Number(argv.datasetId),
                 dataType: Number(argv.dataType),
@@ -223,31 +255,56 @@ export async function run(context: Context) {
                 chunk: Number(argv.chunk),
             })
             break
+        case "completeEscrow":
+            await new DatasetProofs().completeEscrow({
+                context,
+                datasetId: Number(argv.datasetId),
+            })
+            break
+        case "submitDatasetProofCompleted":
+            await new DatasetProofs().submitDatasetProofCompleted({
+                context,
+                datasetId: Number(argv.datasetId),
+            })
+            break
+        case "auditorStake":
+            await new DatasetProofs().auditorStake({
+                context,
+                datasetId: Number(argv.datasetId),
+            })
+            break
         case "submitDatasetChallengeProofs":
-            await submitDatasetChallengeProofs({
+            await new DatasetProofs().submitDatasetChallengeProofs({
                 context,
                 datasetId: Number(argv.datasetId),
                 path: String(argv.path),
             })
             break
         case "deposit":
-            await deposit({
+            await new Finance().deposit({
                 context,
                 datasetId: Number(argv.datasetId),
                 matchingId: Number(argv.matchingId),
                 owner: String(argv.owner),
                 token: String(argv.token),
-                amount: argv.amount as bigint,
+                amount: BigInt(String(argv.amount)),
+            })
+            break
+        case "getDatasetState":
+            await new DatasetMetadatas().getDatasetState({
+                context,
+                datasetId: Number(argv.datasetId),
             })
             break
         case "getEscrowRequirement":
             console.log(
                 "amount: ",
-                await getEscrowRequirement({
+                await new Finance().getEscrowRequirement({
                     context,
                     datasetId: Number(argv.datasetId),
                     size: Number(argv.size),
                     type: Number(argv.type),
+                    replicasCount: Number(argv.replicasCount),
                 })
             )
             break
