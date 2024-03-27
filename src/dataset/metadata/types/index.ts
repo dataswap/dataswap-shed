@@ -46,7 +46,7 @@ export interface DatasetReplicaRequirements {
     dataPreparers: string[][]
     storageProviders: string[][]
     regions: bigint[]
-    countrys: bigint[]
-    citys: bigint[][]
+    countries: bigint[]
+    cities: bigint[][]
     amount: bigint
 }

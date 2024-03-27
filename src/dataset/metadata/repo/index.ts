@@ -19,6 +19,7 @@
  ********************************************************************************/
 
 import fs from "fs"
+import * as countries from "i18n-iso-countries"
 import { DatasetState } from "@dataswapjs/dataswapjs"
 import { handleEvmError, logMethodCall } from "../../../shared/utils/utils"
 import { chainSuccessInterval, blockPeriod } from "../../../shared/constant"
@@ -192,14 +193,13 @@ export class DatasetMetadatas {
             fs.readFileSync(options.path).toString()
         ) as DatasetReplicaRequirements
 
-        const state = await handleEvmError(
-            options.context.evm.datasetMetadata.getDatasetState(
-                datasetReplicaRequirements.datasetId
-            )
-        )
-        if (state != DatasetState.MetadataSubmitted) {
-            console.log("Dataset state is not MetadataSubmitted, do nothing~")
-            return true
+        if (
+            !(await this.checkSubmissionRequirementsCriteria({
+                context: options.context,
+                datasetReplicaRequirements,
+            }))
+        ) {
+            return false
         }
 
         options.context.evm.datasetRequirement
@@ -211,8 +211,8 @@ export class DatasetMetadatas {
                 datasetReplicaRequirements.dataPreparers,
                 datasetReplicaRequirements.storageProviders,
                 datasetReplicaRequirements.regions,
-                datasetReplicaRequirements.countrys,
-                datasetReplicaRequirements.citys,
+                datasetReplicaRequirements.countries,
+                datasetReplicaRequirements.cities,
                 datasetReplicaRequirements.amount
             )
         )
@@ -235,5 +235,38 @@ export class DatasetMetadatas {
                 options.datasetId
             )
         )
+    }
+
+    @logMethodCall(["context"])
+    async getAllCountriesCallingCode(): Promise<{
+        [numericKey: string]: string
+    }> {
+        return countries.getNumericCodes()
+    }
+
+    private async checkSubmissionRequirementsCriteria(options: {
+        context: Context
+        datasetReplicaRequirements: DatasetReplicaRequirements
+    }): Promise<boolean> {
+        const state = await handleEvmError(
+            options.context.evm.datasetMetadata.getDatasetState(
+                options.datasetReplicaRequirements.datasetId
+            )
+        )
+        if (state != DatasetState.MetadataSubmitted) {
+            console.log("Dataset state is not MetadataSubmitted, do nothing~")
+            return false
+        }
+        for (const country of options.datasetReplicaRequirements.countries) {
+            if (!countries.isValid(Number(country))) {
+                console.log(
+                    "Dataset replic requirements countries invalid:",
+                    country
+                )
+                return false
+            }
+        }
+
+        return true
     }
 }
