@@ -285,6 +285,21 @@ function matchingCommand(yargs: yargs.Argv<{}>): {
                 type: "string",
             },
         })
+        .command("getCarsIdsWithState", "Get cars Ids and matching state", {
+            replicaIndex: {
+                description: "Replica index",
+                alias: "r",
+                demandOption: true,
+                type: "number",
+            },
+
+            path: {
+                description: "cars Ids file path",
+                alias: "p",
+                demandOption: true,
+                type: "string",
+            },
+        })
         .command("bidding", "Bidding matching", {
             matchingId: {
                 description: "Matching Id",
@@ -552,6 +567,8 @@ async function dataset(
                 datasetId: Number(argv.datasetId),
             })
             break
+        default:
+            console.log("Unknown command.")
     }
 }
 
@@ -593,6 +610,13 @@ async function matching(
                 path: String(argv.path),
             })
             break
+        case "getCarsIdsWithState":
+            await new Matching().getCarsIdsWithState({
+                context,
+                replicaIndex: Number(argv.replicaIndex),
+                path: String(argv.path),
+            })
+            break
         case "bidding":
             await new Matching().bidding({
                 context,
@@ -606,6 +630,8 @@ async function matching(
                 matchingId: Number(argv.matchingId),
             })
             break
+        default:
+            console.log("Unknown command.")
     }
 }
 
@@ -665,6 +691,8 @@ async function storage(
                 matchingId: Number(argv.matchingId),
             })
             break
+        default:
+            console.log("Unknown command.")
     }
 }
 
@@ -704,5 +732,7 @@ async function finance(
                 })
             )
             break
+        default:
+            console.log("Unknown command.")
     }
 }

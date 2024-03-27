@@ -19,7 +19,7 @@
  ********************************************************************************/
 
 import fs from "fs"
-import { MatchingState } from "@dataswapjs/dataswapjs"
+import { MatchingState, Car } from "@dataswapjs/dataswapjs"
 import { handleEvmError, logMethodCall } from "../../shared/utils/utils"
 import {
     MatchingMetadataSubmitInfo,
@@ -143,11 +143,48 @@ export class Matching {
         context: Context
         path: string
     }): Promise<bigint[]> {
-        const ids = JSON.parse(fs.readFileSync(options.path).toString())
+        const cars = JSON.parse(fs.readFileSync(options.path).toString())
 
         return await handleEvmError(
-            options.context.evm.carstore.getCarsIds(ids.carsHash)
+            options.context.evm.carstore.getCarsIds(cars.carsHash)
         )
+    }
+
+    /**
+     * Retrieves the IDs of cars based on the provided JSON file path.
+     *
+     * @param options An object containing the context and the path to the JSON file.
+     * @returns A Promise resolving to an array of BigInt values representing the car IDs.
+     */
+    @logMethodCall(["context"])
+    async getCarsIdsWithState(options: {
+        context: Context
+        replicaIndex: number
+        path: string
+    }): Promise<{ matchinged: string[]; unmatching: string[] }> {
+        const cars = JSON.parse(fs.readFileSync(options.path).toString())
+
+        const ids: bigint[] = await handleEvmError(
+            options.context.evm.carstore.getCarsIds(cars.carsHash)
+        )
+        const unmatching: bigint[] = []
+        const matchinged: bigint[] = []
+
+        for (const id of ids) {
+            const car = (await handleEvmError(
+                options.context.evm.carstore.getCar(id)
+            )) as Car
+
+            if (
+                car.matchingIds &&
+                car.matchingIds[options.replicaIndex] != (undefined || 0)
+            ) {
+                matchinged.push(id)
+            } else {
+                unmatching.push(id)
+            }
+        }
+        return await this.formatIdsWithState({ matchinged, unmatching })
     }
 
     /**
@@ -188,5 +225,47 @@ export class Matching {
                 options.matchingId
             )
         )
+    }
+
+    /**
+     * Formats the given IDs with their state (matchinged/unmatching).
+     * @param options The options object containing unmatching and matchinged IDs.
+     * @returns A Promise resolving to an object with formatted unmatching and matchinged IDs.
+     */
+    private async formatIdsWithState(options: {
+        matchinged: bigint[]
+        unmatching: bigint[]
+    }): Promise<{ matchinged: string[]; unmatching: string[] }> {
+        const unmatchingIds: string[] = this.formatRange(options.unmatching)
+        const matchingedIds: string[] = this.formatRange(options.matchinged)
+
+        return { matchinged: matchingedIds, unmatching: unmatchingIds }
+    }
+
+    /**
+     * Formats the given array of IDs into ranges (e.g., [1, 2, 3, 5] => ["1-3", "5"]).
+     * @param ids The array of IDs to be formatted.
+     * @returns An array of strings representing formatted ranges of IDs.
+     */
+    private formatRange(ids: bigint[]): string[] {
+        // Sort the IDs and remove duplicates
+        const sortedIds = Array.from(new Set(ids)).sort(
+            (a, b) => Number(a) - Number(b)
+        )
+        const ranges: string[] = []
+
+        let start = sortedIds[0]
+        let end = sortedIds[0]
+        for (let i = 1; i < sortedIds.length; i++) {
+            if (sortedIds[i] - end === BigInt(1)) {
+                end = sortedIds[i]
+            } else {
+                ranges.push(start === end ? `${start}` : `${start}-${end}`)
+                start = end = sortedIds[i]
+            }
+        }
+        ranges.push(start === end ? `${start}` : `${start}-${end}`)
+
+        return ranges
     }
 }
