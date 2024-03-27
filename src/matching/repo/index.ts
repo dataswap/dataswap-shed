@@ -133,6 +133,86 @@ export class Matching {
     }
 
     /**
+     * Closes a matching with the specified matching ID.
+     * @param options - An object containing the context and matching ID.
+     * @returns A Promise that resolves to true if the matching is closed successfully.
+     */
+    @logMethodCall(["context"])
+    async closeMatching(options: {
+        context: Context
+        matchingId: number
+    }): Promise<boolean> {
+        options.context.evm.matchingBids
+            .getWallet()
+            .add(process.env.privateKey!)
+        await handleEvmError(
+            options.context.evm.matchingBids.closeMatching(options.matchingId)
+        )
+        return true
+    }
+
+    /**
+     * Cancels a matching with the specified matching ID.
+     * @param options - An object containing the context and matching ID.
+     * @returns A Promise that resolves to true if the matching is canceled successfully.
+     */
+    @logMethodCall(["context"])
+    async cancelMatching(options: {
+        context: Context
+        matchingId: number
+    }): Promise<boolean> {
+        options.context.evm.matchingBids
+            .getWallet()
+            .add(process.env.datasetPreparerPrivateKey!)
+        await handleEvmError(
+            options.context.evm.matchingBids.cancelMatching(options.matchingId)
+        )
+        return true
+    }
+
+    /**
+     * Pauses a matching with the specified matching ID.
+     * @param options - An object containing the context and matching ID.
+     * @returns A Promise that resolves to true if the matching is paused successfully.
+     */
+    @logMethodCall(["context"])
+    async pauseMatching(options: {
+        context: Context
+        matchingId: number
+    }): Promise<boolean> {
+        options.context.evm.matchingMetadata
+            .getWallet()
+            .add(process.env.datasetPreparerPrivateKey!)
+        await handleEvmError(
+            options.context.evm.matchingMetadata.pauseMatching(
+                options.matchingId
+            )
+        )
+        return true
+    }
+
+    /**
+     * Resumes a matching with the specified matching ID.
+     * @param options - An object containing the context and matching ID.
+     * @returns A Promise that resolves to true if the matching is resumed successfully.
+     */
+    @logMethodCall(["context"])
+    async resumeMatching(options: {
+        context: Context
+        matchingId: number
+    }): Promise<boolean> {
+        options.context.evm.matchingMetadata
+            .getWallet()
+            .add(process.env.datasetPreparerPrivateKey!)
+        await handleEvmError(
+            options.context.evm.matchingMetadata.resumeMatching(
+                options.matchingId
+            )
+        )
+        return true
+    }
+
+    /**
      * Retrieves the IDs of cars based on the provided JSON file path.
      *
      * @param options An object containing the context and the path to the JSON file.
