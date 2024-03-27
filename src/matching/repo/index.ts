@@ -268,6 +268,23 @@ export class Matching {
     }
 
     /**
+     * Asynchronous function to get the winner of a matching.
+     * @param options An object containing the context and matching ID.
+     * @returns A Promise resolving to the winner's numeric ID.
+     */
+    @logMethodCall(["context"])
+    async getMatchingWinner(options: {
+        context: Context
+        matchingId: number
+    }): Promise<number> {
+        return await handleEvmError(
+            options.context.evm.matchingBids.getMatchingWinner(
+                options.matchingId
+            )
+        )
+    }
+
+    /**
      * Places a bid on a matching.
      * @param options - The options object containing the context, matching ID, and bid amount.
      * @returns A promise indicating whether the bidding was successful.

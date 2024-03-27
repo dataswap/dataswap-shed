@@ -300,6 +300,14 @@ function matchingCommand(yargs: yargs.Argv<{}>): {
                 type: "string",
             },
         })
+        .command("getMatchingWinner", "Get matching winner", {
+            matchingId: {
+                description: "Matching Id",
+                alias: "m",
+                demandOption: true,
+                type: "number",
+            },
+        })
         .command("bidding", "Bidding matching", {
             matchingId: {
                 description: "Matching Id",
@@ -647,6 +655,12 @@ async function matching(
                 context,
                 replicaIndex: Number(argv.replicaIndex),
                 path: String(argv.path),
+            })
+            break
+        case "getMatchingWinner":
+            await new Matching().getMatchingWinner({
+                context,
+                matchingId: Number(argv.matchingId),
             })
             break
         case "bidding":
