@@ -314,6 +314,38 @@ function matchingCommand(yargs: yargs.Argv<{}>): {
                 type: "string",
             },
         })
+        .command("closeMatching", "Close matching", {
+            matchingId: {
+                description: "Matching Id",
+                alias: "m",
+                demandOption: true,
+                type: "number",
+            },
+        })
+        .command("cancelMatching", "Cancel matching", {
+            matchingId: {
+                description: "Matching Id",
+                alias: "m",
+                demandOption: true,
+                type: "number",
+            },
+        })
+        .command("pauseMatching", "Pause matching", {
+            matchingId: {
+                description: "Matching Id",
+                alias: "m",
+                demandOption: true,
+                type: "number",
+            },
+        })
+        .command("resumeMatching", "Resume matching", {
+            matchingId: {
+                description: "Matching Id",
+                alias: "m",
+                demandOption: true,
+                type: "number",
+            },
+        })
         .command("getMatchingState", "Get matching state", {
             matchingId: {
                 description:
@@ -622,6 +654,30 @@ async function matching(
                 context,
                 matchingId: Number(argv.matchingId),
                 amount: BigInt(String(argv.amount)),
+            })
+            break
+        case "closeMatching":
+            await new Matching().closeMatching({
+                context,
+                matchingId: Number(argv.matchingId),
+            })
+            break
+        case "cancelMatching":
+            await new Matching().cancelMatching({
+                context,
+                matchingId: Number(argv.matchingId),
+            })
+            break
+        case "pauseMatching":
+            await new Matching().pauseMatching({
+                context,
+                matchingId: Number(argv.matchingId),
+            })
+            break
+        case "resumeMatching":
+            await new Matching().resumeMatching({
+                context,
+                matchingId: Number(argv.matchingId),
             })
             break
         case "getMatchingState":
