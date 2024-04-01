@@ -60,7 +60,7 @@ export class Storages {
 
         options.context.evm.storages
             .getWallet()
-            .add(process.env.storageClientPrivateKey!)
+            .add(process.env.datasetPreparerPrivateKey!)
         await handleEvmError(
             options.context.evm.storages.requestAllocateDatacap(
                 options.matchingId
